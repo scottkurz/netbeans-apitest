@@ -83,18 +83,26 @@ public final class SigtestGenerate extends AbstractMojo {
      */
     @Parameter(defaultValue = "true")
     private boolean attach;
+    /**
+     * By default (with value set to <true>) the project build directory as well as the project dependencies are added to the sigtest classpath.
+     * If set to <false> then only the path configured in <code>classes</code> will be added to the sigtest classpath for this goal.
+     */
+    @Parameter(defaultValue = "true", property = "sigtest.addProjectClassPath")
+    private boolean addProjectClasspath;
+
     private String version;
 
     public SigtestGenerate() {
     }
 
-    SigtestGenerate(MavenProject prj, File classes, File sigfile, String packages, String version, String release) {
+    SigtestGenerate(MavenProject prj, File classes, File sigfile, String packages, String version, String release,  boolean addProjectClasspath) {
         this.prj = prj;
         this.classes = classes;
         this.sigfile = sigfile;
         this.packages = packages;
         this.version = version;
         this.release = release;
+        this.addProjectClasspath = addProjectClasspath;
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -131,7 +139,7 @@ public final class SigtestGenerate extends AbstractMojo {
 
             @Override
             protected String[] getClasspath() {
-                return SigtestCheck.projectClassPath(prj, classes);
+                return SigtestCheck.projectClassPath(prj, classes, addProjectClasspath);
             }
 
             @Override

@@ -97,11 +97,18 @@ public final class SigtestCheck extends AbstractMojo {
     private File report;
     @Parameter(defaultValue = "true", property = "sigtest.fail")
     private boolean failOnError;
+    /**
+     * By default (with value set to <true>) the project build directory as well as the project dependencies are added to the sigtest classpath.
+     * If set to <false> then only the path configured in <code>classes</code> will be added to the sigtest classpath for this goal.
+     */
+    @Parameter(defaultValue = "true", property = "sigtest.addProjectClassPath")
+    private boolean addProjectClasspath;
+
 
     public SigtestCheck() {
     }
 
-    SigtestCheck(MavenProject prj, File classes, File sigfile, String action, String packages, File report, boolean failOnError) {
+    SigtestCheck(MavenProject prj, File classes, File sigfile, String action, String packages, File report, boolean failOnError, boolean addProjectClasspath) {
         this.prj = prj;
         this.classes = classes;
         this.sigfile = sigfile;
@@ -109,9 +116,8 @@ public final class SigtestCheck extends AbstractMojo {
         this.packages = packages;
         this.report = report;
         this.failOnError = failOnError;
+        this.addProjectClasspath = addProjectClasspath;
     }
-
-
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (packages == null) {
@@ -152,7 +158,7 @@ public final class SigtestCheck extends AbstractMojo {
 
             @Override
             protected String[] getClasspath() {
-                return projectClassPath(prj, classes);
+                return projectClassPath(prj, classes, addProjectClasspath);
             }
 
             @Override
@@ -205,13 +211,15 @@ public final class SigtestCheck extends AbstractMojo {
         }
     }
 
-    static String[] projectClassPath(MavenProject project, File classes) {
+    static String[] projectClassPath(MavenProject project, File classes, boolean addProjectClasspath) {
         Set<String> path = new LinkedHashSet<String>();
         path.add(classes.getAbsolutePath());
-        path.add(project.getBuild().getOutputDirectory());
-        for (Artifact a : project.getArtifacts()) {
-            if (a.getFile() != null && a.getFile().exists()) {
-                path.add(a.getFile().getAbsolutePath());
+        if (addProjectClasspath) {
+            path.add(project.getBuild().getOutputDirectory());
+            for (Artifact a : project.getArtifacts()) {
+                if (a.getFile() != null && a.getFile().exists()) {
+                    path.add(a.getFile().getAbsolutePath());
+                }
             }
         }
         return path.toArray(new String[0]);

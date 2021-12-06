@@ -74,6 +74,12 @@ public final class SigtestCompare extends AbstractMojo {
     private File report;
     @Parameter(defaultValue = "true", property = "sigtest.fail")
     private boolean failOnError;
+    /**
+     * By default (with value set to <true>) the project build directory as well as the project dependencies are added to the sigtest classpath.
+     * If set to <false> then only the path configured in <code>classes</code> will be added to the sigtest classpath for this goal.
+     */
+    @Parameter(defaultValue = "true", property = "sigtest.addProjectClassPath")
+    private boolean addProjectClasspath;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (packages == null) {
@@ -94,10 +100,10 @@ public final class SigtestCompare extends AbstractMojo {
             throw new MojoExecutionException("Cannot resolve " + artifact, ex);
         }
 
-        SigtestGenerate generate = new SigtestGenerate(prj, artifact.getFile(), sigfile, packages, releaseVersion, release);
+        SigtestGenerate generate = new SigtestGenerate(prj, artifact.getFile(), sigfile, packages, releaseVersion, release, addProjectClasspath);
         generate.execute();
 
-        SigtestCheck check = new SigtestCheck(prj, classes, sigfile, action, packages, report, failOnError);
+        SigtestCheck check = new SigtestCheck(prj, classes, sigfile, action, packages, report, failOnError, addProjectClasspath);
         check.execute();
     }
 }
